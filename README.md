@@ -1,30 +1,6 @@
 # Description
 
-<!-- Write your project description here. -->
-
-
----
-
----
-
-# Pipeline overview
-
-```
-build_item_bank.py   ── assemble a question bank from public benchmarks
-        │                → item_bank.json
-        ▼
-score_openrouter.py  ── ask every model every question, grade the answers
-        │                → results.json  (source of truth: replies + grades + cost)
-        ▼
-make_matrix.py       ── derive the model × item correct/incorrect matrix
-        │                → matrix_strict.csv
-        ▼
-rasch_analysis.py    ── fit the Rasch model, diagnostics, calibration export
-        │                → rasch_calibration.json
-        ▼
-build_site.py        ── merge bank + calibration into one static page
-                         → index.html
-```
+Builds a site to benchmark human reasoning against LLMs using a Rasch psychometric model. 
 
 ---
 
