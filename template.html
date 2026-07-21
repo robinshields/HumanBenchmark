@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Human Benchmark — how do you score against the machines?</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<meta name="theme-color" content="#C6621E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Public+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* "warm archive" palette — ivory ground, deep teal structure, burnt-amber
+     signal. Retune the whole site from these lines; --signal is the one bold
+     accent, reserved for the human's marker. */
+  --paper:#F2EDE3; --panel:#FBF8F1; --ink:#1E1B17; --ink-soft:#5A5348;
+  --rule:#DAD1C1; --slate:#8A8574; --slate-deep:#3A4A47;
+  --signal:#C6621E; --signal-soft:rgba(198,98,30,.15);
+  --ok:#2F6E5B; --no:#B0492A;
+  --band:rgba(58,74,71,.20);
+  --r:10px;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:"Public Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --disp:"Lato",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper); color:var(--ink); font-family:var(--sans);
+  font-size:16px; line-height:1.5; -webkit-font-smoothing:antialiased;
+  background-image:linear-gradient(var(--rule) 1px,transparent 1px),
+                   linear-gradient(90deg,var(--rule) 1px,transparent 1px);
+  background-size:100% 34px,34px 100%;
+  background-position:-1px -1px;
+}
+body::before{content:"";position:fixed;inset:0;background:var(--paper);opacity:.82;pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:20px 16px 56px}
+
+/* ---------- masthead ---------- */
+.masthead{display:flex;align-items:flex-start;gap:16px;margin-bottom:18px}
+.masthead h1{
+  font-family:var(--disp);font-weight:700;font-size:clamp(26px,4.6vw,42px);
+  line-height:1.02;letter-spacing:-.02em;margin:0;flex:1;
+}
+.masthead h1 em{font-style:italic;color:var(--signal)}
+.sub{font-family:var(--mono);font-size:11px;letter-spacing:.14em;/*text-transform:uppercase;*/
+     color:var(--ink-soft);margin:6px 0 0}
+.tools{display:flex;gap:8px;flex-shrink:0;padding-top:4px}
+.icon-btn{
+  width:38px;height:38px;border-radius:var(--r);border:1px solid var(--rule);
+  background:var(--panel);color:var(--ink-soft);cursor:pointer;display:grid;place-items:center;
+  transition:border-color .15s,color .15s,transform .15s;
+}
+.icon-btn:hover{border-color:var(--slate);color:var(--ink)}
+.icon-btn:active{transform:scale(.95)}
+.icon-btn svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.7}
+
+/* ---------- layout ---------- */
+.grid{display:grid;gap:18px;grid-template-columns:1fr}
+@media(min-width:920px){ .grid{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);align-items:start} }
+
+.panel{
+  background:var(--panel);border:1px solid var(--rule);border-radius:var(--r);
+  padding:22px 20px;box-shadow:0 1px 0 rgba(30,27,23,.04);
+}
+.panel h2{font-family:var(--disp);font-weight:600;font-size:21px;letter-spacing:-.01em;margin:0 0 10px}
+.panel p{margin:12px 0 12px;color:var(--ink-soft);font-size:15px}
+.panel p strong{color:var(--ink);font-weight:600}
+
+/* ---------- intro ---------- */
+.how{list-style:none;margin:0 0 18px;padding:0;border-top:1px solid var(--rule)}
+.how li{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--rule);font-size:14.5px;color:var(--ink-soft)}
+.how b{font-family:var(--mono);font-size:11px;color:var(--signal);letter-spacing:.08em;padding-top:3px}
+
+/* ---------- buttons ---------- */
+.btn{
+  font-family:var(--sans);font-weight:600;font-size:15px;
+  background:var(--ink);color:var(--paper);border:1px solid var(--ink);
+  padding:11px 22px;border-radius:var(--r);cursor:pointer;
+  transition:background .15s,transform .12s;
+}
+.btn:hover{background:var(--slate-deep)}
+.btn:active{transform:translateY(1px)}
+.btn[disabled]{background:var(--rule);border-color:var(--rule);color:#A79E8C;cursor:not-allowed;transform:none}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--rule)}
+.btn.ghost:hover{border-color:var(--slate);background:rgba(58,74,71,.07)}
+:focus-visible{outline:2.5px solid var(--signal);outline-offset:2px}
+
+/* ---------- timer ---------- */
+.timer{margin:-4px 0 16px}
+.timer-top{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:5px}
+.timer-track{height:5px;background:var(--rule);border-radius:3px;overflow:hidden}
+.timer-fill{height:100%;width:100%;background:var(--slate);transform-origin:left center}
+.timer-fill.warn{background:var(--signal)}
+
+/* ---------- question ---------- */
+.qmeta{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+.qtext{font-size:16.5px;line-height:1.55;margin:0 0 16px;white-space:pre-wrap}
+.choices{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+.choice{
+  display:flex;gap:11px;align-items:flex-start;padding:11px 13px;cursor:pointer;
+  border:1px solid var(--rule);border-radius:var(--r);background:var(--panel);
+  transition:border-color .14s,background .14s;
+}
+.choice:hover{border-color:var(--slate)}
+.choice input{position:absolute;opacity:0;pointer-events:none}
+.choice .key{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--slate);
+  border:1px solid var(--rule);border-radius:5px;min-width:22px;height:22px;display:grid;place-items:center;flex-shrink:0;margin-top:1px}
+.choice.sel{border-color:var(--ink);background:rgba(58,74,71,.09)}
+.choice.sel .key{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.choice.right{border-color:var(--ok);background:rgba(47,110,91,.10)}
+.choice.wrong{border-color:var(--no);background:rgba(176,73,42,.09)}
+.numin{
+  font-family:var(--mono);font-size:17px;padding:12px 14px;width:100%;
+  border:1px solid var(--rule);border-radius:var(--r);background:var(--panel);color:var(--ink);margin-bottom:18px;
+}
+.numin:focus{border-color:var(--ink);outline:none}
+
+/* ---------- verdict ---------- */
+.verdict{border-left:3px solid var(--slate);padding:2px 0 2px 14px;margin:0 0 16px}
+.verdict.ok{border-color:var(--ok)} .verdict.no{border-color:var(--no)}
+.verdict .tag{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-soft);display:block;margin-bottom:3px}
+.verdict p{margin:0;font-size:15px;color:var(--ink)}
+.verdict .band{font-family:var(--mono);font-weight:600;color:var(--signal)}
+
+/* ---------- scale ---------- */
+.scale-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px}
+.scale-head h2{margin:0}
+.legend{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--ink-soft);}
+.axis{position:relative;height:15px;margin:14px 0 4px;font-family:var(--mono);font-size:10px;color:var(--ink-soft)}
+.axis span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.rows{position:relative;transition:height .35s ease}
+.row{position:absolute;left:0;right:0;height:24px;display:flex;align-items:center;gap:8px;
+  transition:transform .45s cubic-bezier(.4,0,.2,1);will-change:transform}
+.row .name{font-family:var(--mono);font-size:10.5px;color:var(--ink-soft);width:34%;max-width:160px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0;text-align:right}
+.row .name .co{opacity:.42;font-size:9px;margin-right:4px}
+.row .track{position:relative;flex:1;height:100%}
+.row .track::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--rule)}
+.row .ci{position:absolute;top:50%;transform:translateY(-50%);height:9px;border-radius:5px;background:var(--band);
+  transition:left .45s ease,width .45s ease}
+.row .pt{position:absolute;top:50%;width:9px;height:9px;border-radius:50%;background:var(--slate-deep);
+  transform:translate(-50%,-50%);transition:left .45s ease}
+.row .val{font-family:var(--mono);font-size:10.5px;color:var(--ink-soft);width:38px;text-align:right;flex-shrink:0}
+.row.me .name,.row.me .val{color:var(--signal);font-weight:600}
+.row.me .ci{background:var(--signal-soft)}
+.row.me .pt{background:var(--signal);width:12px;height:12px;box-shadow:0 0 0 3px rgba(198,98,30,.18)}
+.row.perfect .name{color:var(--slate-deep);font-weight:600}
+.row.perfect .pt{background:var(--slate-deep);border-radius:2px;width:10px;height:10px}
+.row .name[data-tip]{cursor:help;border-bottom:1px dotted var(--slate)}
+.tip{position:fixed;z-index:40;max-width:250px;background:var(--ink);color:var(--paper);
+  font-family:var(--mono);font-size:10.5px;line-height:1.6;padding:9px 11px;border-radius:8px;
+  pointer-events:none;opacity:0;transition:opacity .13s}
+.tip.on{opacity:1}
+
+/* ---------- modal ---------- */
+.scrim{position:fixed;inset:0;background:rgba(30,27,23,.42);display:none;z-index:50;
+  align-items:center;justify-content:center;padding:16px}
+.scrim.on{display:flex}
+.modal{background:var(--panel);border-radius:var(--r);max-width:560px;width:100%;
+  max-height:86vh;overflow-y:auto;padding:26px 24px;border:1px solid var(--rule)}
+.modal h2{font-family:var(--disp);font-size:23px;margin:0 0 4px}
+.modal h3{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--signal);margin:22px 0 7px}
+.modal p{font-size:14.5px;color:var(--ink-soft);margin:0 0 11px}
+.modal ul{margin:0 0 11px;padding-left:18px;font-size:14.5px;color:var(--ink-soft)}
+.modal li{margin-bottom:6px}
+.modal code{font-family:var(--mono);font-size:12.5px;background:rgba(58,74,71,.13);padding:1px 5px;border-radius:4px}
+.modal-x{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+
+/* ---------- settings ---------- */
+.set-row{display:flex;justify-content:space-between;align-items:center;gap:14px;
+  padding:13px 0;border-bottom:1px solid var(--rule)}
+.set-row:last-of-type{border-bottom:none}
+.set-row label{font-size:14.5px;font-weight:500}
+.set-row .hint{font-size:12.5px;color:var(--ink-soft);margin-top:2px}
+input[type=range]{width:100%;accent-color:var(--signal)}
+.switch{position:relative;width:44px;height:25px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0;position:absolute}
+.slider{position:absolute;inset:0;background:var(--rule);border-radius:25px;cursor:pointer;transition:background .18s}
+.slider::before{content:"";position:absolute;width:19px;height:19px;left:3px;top:3px;background:var(--panel);
+  border-radius:50%;transition:transform .18s}
+.switch input:checked + .slider{background:var(--signal)}
+.switch input:checked + .slider::before{transform:translateX(19px)}
+.switch input:focus-visible + .slider{outline:2.5px solid var(--signal);outline-offset:2px}
+.tval{font-family:var(--mono);font-size:13px;color:var(--signal);font-weight:600}
+
+.foot{margin-top:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;display: none;
+  color:var(--slate);text-align:center}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <div style="flex:1">
+      <h1>Benchmark your reasoning against AI models</h1>
+    </div>
+    <div class="tools">
+      <button class="icon-btn" id="btn-about" aria-label="About this test" title="About">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.4" stroke-linecap="round"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-set" aria-label="Settings" title="Settings">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 9 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 4.6 9a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- ================= question pane ================= -->
+    <section class="panel" id="pane" aria-live="polite">
+      <!-- intro -->
+      <div id="view-intro">
+        <h2>Answer AI reasoning benchmark questions</h2>
+        <ul>
+          <li>Difficulty adapts to estimate your ability</li>
+          <li>Responses are timed</li>
+          <li>Five questions will give a good sense of your ability (and potential) earnings</li>
+        </ul>
+        
+        <button class="btn" id="btn-start">Start</button>
+      </div>
+
+      <!-- question -->
+      <div id="view-q" hidden>
+        <div class="timer" id="timer" hidden>
+          <div class="timer-top"><span>Time remaining</span><span id="t-left">—</span></div>
+          <div class="timer-track"><div class="timer-fill" id="t-fill"></div></div>
+        </div>
+        <div class="qmeta"><span id="q-num">Question 1</span><span id="q-kind">—</span></div>
+        <p class="qtext" id="q-text"></p>
+        <div class="choices" id="q-choices"></div>
+        <input class="numin" id="q-num-in" type="text" inputmode="decimal" placeholder="Type a number" hidden>
+        <button class="btn" id="btn-submit" disabled>Submit answer</button>
+      </div>
+
+      <!-- feedback -->
+      <div id="view-fb" hidden>
+        <div class="verdict" id="fb-box">
+          <span class="tag" id="fb-tag">—</span>
+          <p id="fb-msg"></p>
+        </div>
+        <p style="font-size:14.5px" id="fb-est"></p>
+        <button class="btn" id="btn-next">Next item</button>
+        <button class="btn ghost" id="btn-stop" style="margin-left:8px">Finish</button>
+      </div>
+
+      <!-- done -->
+      <div id="view-done" hidden>
+        <h2>That's your measure</h2>
+        <p id="done-msg"></p>
+        <button class="btn" id="btn-again">Take it again</button>
+      </div>
+    </section>
+
+    <!-- ================= scale ================= -->
+    <section class="panel">
+      <div class="scale-head">
+        <h2>The Leaderboard</h2>
+        <span class="legend"><span id="nmodels">—</span> models</span>
+      </div>
+      <p style="font-size:13px;margin:6px 0 0">Shaded bars are confidence ranges.</p>
+      <div class="axis" id="axis"></div>
+      <div class="rows" id="rows"></div>
+    </section>
+  </div>
+
+  <p class="foot"><span id="foot-items">—</span> items</p>
+</div>
+
+<div class="tip" id="tip"></div>
+
+<!-- ============== settings modal ============== -->
+<div class="scrim" id="scrim-set">
+  <div class="modal" role="dialog" aria-label="Settings">
+    <div class="modal-x">
+      <h2>Settings</h2>
+      <button class="icon-btn" id="set-close" aria-label="Close settings">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="set-row" style="display:block">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+        <label for="opt-secs">Time per question</label>
+        <span class="tval" id="opt-secs-val">1m 00s</span>
+      </div>
+      <input type="range" id="opt-secs" min="15" max="300" step="5" value="60">
+      <div class="hint" style="margin-top:6px">Run out of time and the question is marked wrong.</div>
+    </div>
+    <p style="font-size:13px;margin-top:16px">Changes apply to the next question.</p>
+  </div>
+</div>
+
+<!-- ============== about modal ============== -->
+<div class="scrim" id="scrim-about">
+  <div class="modal" role="dialog" aria-label="About this test">
+    <div class="modal-x">
+      <h2>About</h2>
+      <button class="icon-btn" id="about-close" aria-label="Close about">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <p><strong>This is a toy.</strong> It is not a serious measure of human or machine intelligence, and it would not survive contact with a psychometrician. Treat the number as a conversation starter.</p>
+
+    <h3>Where the questions come from</h3>
+    <ul>
+      <li><strong>CommonsenseQA</strong> — everyday common sense that most people find easy.</li>
+      <li><strong>GSM8K</strong> — grade-school arithmetic word problems.</li>
+      <li><strong>AGIEval (LSAT logical reasoning)</strong> — real law-school admission test items: read a short argument, spot the flaw or the assumption.</li>
+      <li><strong>AGIEval (AQuA-RAT)</strong> — GMAT and GRE style quantitative word problems.</li>
+      <li><strong>BIG-Bench Hard</strong> — logical deduction, object counting, date arithmetic, tracking things as they move, causal judgement, and truth-teller puzzles.</li>
+    </ul>
+    <p>All were chosen to need reasoning rather than schooling or trivia, so nobody is punished for what they did or didn't study.</p>
+
+    <h3>Why so few questions</h3>
+    <p>The clever part is a <strong>Rasch model</strong>, and its payoff is efficiency: it can place you on the scale in a handful of questions where naive scoring would need dozens. Because it knows each question's difficulty in advance, every answer you give — right <em>or</em> wrong — rules out a whole range of possible scores at once. Miss a hard question and get an easy one, and it already has you pinned.</p>
+    <p>It works by putting question difficulty and contestant ability on one shared ruler. A question most models fail scores as hard; a contestant who answers hard questions scores as able. The chance of anyone getting any question right is just the gap between the two. That shared ruler is also why your eight answers can be compared fairly to a model that answered all hundred — everyone's score is <em>expected percent of the whole bank</em>, not raw marks.</p>
+    <p>And it's adaptive: after each answer the next question is chosen to sit right at your current level, where it reveals the most.</p>
+
+    <h3>Reading the range</h3>
+    <p>The shaded bar is a 95% confidence range. It starts enormous and narrows with every answer. If two bars overlap heavily, the difference between them is not real.</p>
+
+    <h3>Honest caveats</h3>
+    <ul>
+      <li>Difficulty was calibrated on <em>machines</em>, not people. Humans find different things hard.</li>
+      <li>Several models answered every question correctly, so the test cannot rank them. They share a single <code>Perfect score</code> marker.</li>
+      <li>Guessing is only crudely accounted for.</li>
+      <li>25 respondents is a small calibration sample. The error bars are honest about this.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+const DATA = /*__DATA__*/ null;
+
+/* ============================ state ============================ */
+const S = {
+  items: DATA.items.slice(),
+  asked: [], theta: 0, sd: 3.0, n: 0, started: false,
+  cur: null, sel: null, timerId: null, deadline: 0, secs: 60, costSum: 0,
+};
+const MIN_Q = 5;
+const $ = id => document.getElementById(id);
+
+/* ===================== rasch / estimation ====================== */
+// P(correct) with a guessing floor c:  c + (1-c) / (1 + e^-(theta-b))
+function pc(theta, b, c){ return c + (1-c) / (1 + Math.exp(-(theta-b))); }
+
+// EAP over a grid: robust even when every answer so far is right or wrong.
+const GRID = (()=>{ const g=[]; for(let t=-6;t<=6.0001;t+=0.05) g.push(+t.toFixed(2)); return g; })();
+function estimate(){
+  const prior = t => Math.exp(-(t*t)/(2*2.5*2.5));       // N(0, 2.5^2)
+  let post = GRID.map(prior);
+  for(const a of S.asked){
+    const it = a.item;
+    for(let k=0;k<GRID.length;k++){
+      const p = pc(GRID[k], it.difficulty, it.guess_floor||0);
+      post[k] *= a.correct ? p : (1-p);
+    }
+  }
+  const z = post.reduce((s,v)=>s+v,0) || 1;
+  post = post.map(v=>v/z);
+  const mean = GRID.reduce((s,t,k)=>s+t*post[k],0);
+  const varr = GRID.reduce((s,t,k)=>s+post[k]*(t-mean)*(t-mean),0);
+  S.theta = mean; S.sd = Math.sqrt(Math.max(varr,1e-6));
+}
+
+// ability (logits) -> expected % of the whole bank, via the calibrated curve
+function pct(theta){
+  const C = DATA.ability_to_pct;
+  if(theta <= C[0][0]) return C[0][1];
+  if(theta >= C[C.length-1][0]) return C[C.length-1][1];
+  for(let i=0;i<C.length-1;i++){
+    if(theta >= C[i][0] && theta <= C[i+1][0]){
+      const f = (theta-C[i][0])/(C[i+1][0]-C[i][0]);
+      return C[i][1] + f*(C[i+1][1]-C[i][1]);
+    }
+  }
+  return 50;
+}
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+
+// next item: most informative at the current estimate, with a little jitter.
+// The FIRST question draws from a much wider pool - at a starting estimate of
+// zero the "most informative" item is always the same one, so without this the
+// test would open identically every time. All of these sit near the middle of
+// the difficulty range, so variety costs almost nothing in information.
+// VARIETY (0..1, set at build time) widens the candidate pool: 0 = always the
+// single most-informative item (precise but repetitive across sessions),
+// 1 = draw from a broad band near your level (varied, slightly less precise).
+const VARIETY = (typeof DATA.variety === 'number') ? DATA.variety : 0.35;
+function poolWidth(base, n){
+  // base grows with VARIETY; the first question is always broad.
+  const extra = Math.round(VARIETY * (n === 0 ? 10 : 8));
+  return Math.max(1, base + extra);
+}
+function pickItem(){
+  const left = S.items.filter(it => !S.asked.some(a => a.item.item_id === it.item_id));
+  if(!left.length) return null;
+  const scored = left.map(it => {
+    const p = pc(S.theta, it.difficulty, it.guess_floor||0);
+    return {it, info: p*(1-p)};
+  }).sort((a,b)=>b.info-a.info);
+  const width = poolWidth(S.n === 0 ? 4 : 2, S.n);
+  const pool = scored.slice(0, Math.min(width, scored.length));
+  // weight the draw toward the more informative end so variety doesn't fully
+  // sacrifice targeting: earlier items in the pool are likelier.
+  const r = Math.pow(Math.random(), 1 + VARIETY);   // skew toward index 0
+  return pool[Math.floor(r * pool.length)].it;
+}
+
+/* ============================ chart ============================ */
+let rowEls = new Map();
+function buildRows(){
+  const rows = $('rows'); rows.innerHTML=''; rowEls = new Map();
+  const entries = [];
+  const perfect = DATA.models.filter(m=>m.perfect_score);
+  DATA.models.filter(m=>!m.perfect_score).forEach(m=>{
+    entries.push({id:m.model, name:m.short||shortName(m.model), company:m.company||'',
+                  pct:m.expected_pct,
+                  lo:m.expected_pct_lo, hi:m.expected_pct_hi, cls:''});
+  });
+  if(perfect.length){
+    entries.push({id:'__perfect__', name:'Perfect score', pct:100, lo:null, hi:null, cls:'perfect',
+      tip:'Answered every question correctly, so the test cannot tell them apart:\n• '
+          + perfect.map(m=>m.short||m.model).join('\n• ')});
+  }
+  entries.push({id:'__me__', name:'You', pct:100, lo:0, hi:100, cls:'me'});
+
+  for(const e of entries){
+    const el = document.createElement('div');
+    el.className = 'row ' + e.cls;
+    const label = e.company ? `<span class="co">${e.company}</span>${e.name}` : e.name;
+    el.innerHTML = `<div class="name"${e.tip?` data-tip="${e.tip.replace(/"/g,'&quot;')}"`:''}>${label}</div>
+      <div class="track"><div class="ci"></div><div class="pt"></div></div>
+      <div class="val"></div>`;
+    rows.appendChild(el);
+    rowEls.set(e.id, {el, data:e});
+  }
+  drawAxis(); layout();
+}
+function shortName(s){ return s.length>26 ? s.slice(0,25)+'…' : s; }
+
+function drawAxis(){
+  const ax = $('axis'); ax.innerHTML='';
+  const nameW = getComputedStyle(document.documentElement).getPropertyValue('--x')||'';
+  [0,25,50,75,100].forEach(v=>{
+    const s=document.createElement('span');
+    s.textContent = v+'%';
+    s.style.left = `calc(34% + 8px + (100% - 34% - 8px - 38px - 8px) * ${v/100})`;
+    ax.appendChild(s);
+  });
+}
+
+function layout(){
+  const me = rowEls.get('__me__');
+  if(me){
+    me.data.pct = S.n ? pct(S.theta) : 100;
+    me.data.lo  = S.n ? clamp(pct(S.theta-1.96*S.sd),0,100) : 0;
+    me.data.hi  = S.n ? clamp(pct(S.theta+1.96*S.sd),0,100) : 100;
+  }
+  const list = [...rowEls.values()].sort((a,b)=>b.data.pct-a.data.pct);
+  const H = window.innerWidth < 560 ? 22 : 24;
+  list.forEach((r,i)=>{
+    r.el.style.transform = `translateY(${i*H}px)`;
+    const lo = r.data.lo, hi = r.data.hi;
+    const ci = r.el.querySelector('.ci'), pt = r.el.querySelector('.pt'), val = r.el.querySelector('.val');
+    if(lo!=null && hi!=null){
+      ci.style.left = lo+'%'; ci.style.width = Math.max(hi-lo,0)+'%'; ci.style.display='';
+    } else { ci.style.display='none'; }
+    pt.style.left = r.data.pct+'%';
+    val.textContent = (r.data.id==='__me__' && !S.n) ? '—' : Math.round(r.data.pct)+'%';
+  });
+  $('rows').style.height = (list.length*H)+'px';
+}
+
+/* ============================ flow ============================= */
+function start(){
+  S.started=true; S.asked=[]; S.n=0; S.theta=0; S.sd=3.0; S.costSum=0;
+  show('view-q'); nextItem();
+}
+function show(which){
+  ['view-intro','view-q','view-fb','view-done'].forEach(v => $(v).hidden = (v!==which));
+}
+
+function nextItem(){
+  const it = pickItem();
+  if(!it){ finish('You have answered every question in the bank.'); return; }
+  S.cur = it; S.sel = null;
+  $('q-num').textContent = `Question ${S.n+1}`;
+  $('q-kind').textContent = it.kind || '';
+  $('q-text').textContent = it.question;
+  const box = $('q-choices'); box.innerHTML='';
+  const numIn = $('q-num-in');
+  if(it.format==='mc'){
+    numIn.hidden = true; box.hidden = false;
+    it.choices.forEach((c,i)=>{
+      const L = String.fromCharCode(65+i);
+      const lab = document.createElement('label');
+      lab.className='choice';
+      lab.innerHTML = `<input type="radio" name="c" value="${L}"><span class="key">${L}</span><span>${escapeHtml(c)}</span>`;
+      lab.querySelector('input').addEventListener('change',()=>{
+        S.sel = L;
+        [...box.children].forEach(ch=>ch.classList.remove('sel'));
+        lab.classList.add('sel');
+        $('btn-submit').disabled = false;
+      });
+      box.appendChild(lab);
+    });
+  } else {
+    box.hidden = true; numIn.hidden = false; numIn.value='';
+    numIn.oninput = () => { S.sel = numIn.value.trim(); $('btn-submit').disabled = !S.sel; };
+    setTimeout(()=>numIn.focus(),50);
+  }
+  $('btn-submit').disabled = true;
+  show('view-q');
+  startTimer();
+}
+function escapeHtml(s){ return s.replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+
+function startTimer(){
+  stopTimer();
+  const t = $('timer');
+  t.hidden = false;
+  S.deadline = Date.now() + S.secs*1000;
+  const fill = $('t-fill');
+  fill.classList.remove('warn');
+  const tick = () => {
+    const left = S.deadline - Date.now();
+    const frac = clamp(left/(S.secs*1000),0,1);
+    fill.style.transform = `scaleX(${frac})`;
+    $('t-left').textContent = Math.max(0,Math.ceil(left/1000)) + 's';
+    if(frac < 0.25) fill.classList.add('warn');
+    if(left <= 0){ stopTimer(); submit(true); }
+  };
+  tick();
+  S.timerId = setInterval(tick, 100);
+}
+function stopTimer(){ if(S.timerId){ clearInterval(S.timerId); S.timerId=null; } }
+
+function submit(timedOut){
+  stopTimer();
+  const it = S.cur;
+  let correct = false;
+  if(!timedOut){
+    if(it.format==='mc') correct = (S.sel === it.answer);
+    else {
+      const v = parseFloat(String(S.sel).replace(/[$,\s%]/g,''));
+      correct = isFinite(v) && Math.abs(v - parseFloat(it.answer)) < 1e-6;
+    }
+  }
+  // reveal on the choices
+  if(it.format==='mc'){
+    [...$('q-choices').children].forEach(ch=>{
+      const L = ch.querySelector('input').value;
+      if(L===it.answer) ch.classList.add('right');
+      else if(L===S.sel) ch.classList.add('wrong');
+    });
+  }
+  S.asked.push({item:it, correct}); S.n++;
+  S.costSum += (it.cost||0);          // for the "LLM hourly rate" gag
+  estimate(); layout();
+
+  const box=$('fb-box'), tag=$('fb-tag'), msg=$('fb-msg');
+  box.className = 'verdict ' + (correct?'ok':'no');
+  tag.textContent = timedOut ? 'Out of time' : (correct ? 'Correct' : 'Not this time');
+  if(timedOut) msg.innerHTML = `Out of time — that one's marked wrong. The answer was ${answerText(it)}.`;
+  else msg.innerHTML = outcomeMessage(it, correct);
+
+  const need = MIN_Q - S.n;
+  const est = $('fb-est');
+  if(need > 0){
+    est.innerHTML = `Answer <strong>${need} more</strong> ${need===1?'question':'questions'} for a usable estimate — the range on the ruler is still very wide.`
+                    + earningsLine();
+  } else {
+    const p  = pct(S.theta);
+    const lo = clamp(pct(S.theta-1.96*S.sd),0,100);
+    const hi = clamp(pct(S.theta+1.96*S.sd),0,100);
+    est.innerHTML = neighbourLine(p, lo, hi) + ` <span style="color:var(--ink-soft)">Keep going to narrow it.</span>`;
+  }
+  show('view-fb');
+}
+function answerText(it){
+  if(it.format!=='mc') return it.answer;
+  const i = it.answer.charCodeAt(0)-65;
+  return `${it.answer} — ${it.choices[i]}`;
+}
+const PRAISE = ['Clean.','Well spotted.','Right on.','Nicely done.','Sharp.'];
+const CONSOLE_ = ['Not this time.','The machines got that one.','Tricky one.'];
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+// rank of a model on the board (0 = strongest), for judging "surprise"
+function modelRank(short){
+  const board = DATA.models.slice().sort((a,b)=>b.expected_pct-a.expected_pct);
+  const i = board.findIndex(m=>(m.short||m.model)===short);
+  return i<0 ? null : {rank:i, total:board.length, pct:board[i].expected_pct};
+}
+// pretty model name from the short id stored on the item's got_right/got_wrong
+function nameOf(short){
+  const m = DATA.models.find(m=>(m.short||m.model)===short);
+  return m ? (m.short||m.model) : short;
+}
+
+// Build a personalised line. Priority: a custom message written for this
+// specific item, then a "surprise" based on who else got it, then an
+// informative fallback that reports how the model field did.
+function outcomeMessage(it, correct){
+  const right = it.got_right||[], wrong = it.got_wrong||[];
+  const total = right.length + wrong.length;
+  const ans = correct ? '' : ` The answer was ${answerText(it)}.`;
+
+  // 1) a line hand-written for this item, if present
+  const custom = correct ? it.msg_right : it.msg_wrong;
+  if(custom) return custom + ans;
+
+  if(correct){
+    // 2) you beat a strong model
+    const strongMiss = wrong.map(s=>({s,r:modelRank(s)}))
+                            .filter(x=>x.r && x.r.rank<5)
+                            .sort((a,b)=>a.r.rank-b.r.rank)[0];
+    if(strongMiss)
+      return `You got that — and <strong>${nameOf(strongMiss.s)}</strong> didn't. `
+           + `One of the strongest models on the board missed it.`;
+    // 3) informative: how rare was a correct answer
+    if(total && right.length/total <= 0.30)
+      return `Only ${right.length} of ${total} models got that one right. Sharp.`;
+    if(total && right.length/total <= 0.55)
+      return `About half the models missed that — you didn't.`;
+    return pick(PRAISE);
+  } else {
+    // 2) a weak model got what you missed
+    const weakHit = right.map(s=>({s,r:modelRank(s)}))
+                         .filter(x=>x.r && x.r.rank>=x.r.total-6)
+                         .sort((a,b)=>b.r.rank-a.r.rank)[0];
+    if(weakHit)
+      return `Missed it — and <strong>${nameOf(weakHit.s)}</strong>, near the bottom of `
+           + `the board, got it right.${ans}`;
+    // 3) informative: were you in good company?
+    if(total && right.length/total <= 0.35)
+      return `Don't feel bad — only ${right.length} of ${total} models got that one either.${ans}`;
+    if(total && wrong.length/total <= 0.20)
+      return `Most models got that one.${ans}`;
+    return `${pick(CONSOLE_)}${ans}`;
+  }
+}
+
+// Which models sit immediately below and above the current estimate?
+// Perfect scorers are collapsed into one labelled group, since the test
+// cannot tell them apart.
+function neighbours(p){
+  const perfect = DATA.models.filter(m=>m.perfect_score);
+  const board = DATA.models.filter(m=>!m.perfect_score)
+                  .map(m=>({name:m.short||m.model, pct:m.expected_pct}));
+  if(perfect.length){
+    board.push({name: perfect.length===1 ? (perfect[0].short||perfect[0].model)
+                : `the ${perfect.length} perfect scorers`, pct:100, group:true});
+  }
+  board.sort((a,b)=>a.pct-b.pct);
+  let below=null, above=null;
+  for(const m of board){
+    if(m.pct <= p) below = m;            // highest that is still at or under
+    if(m.pct > p && above===null) above = m;  // lowest that is above
+  }
+  return {below, above};
+}
+function neighbourLine(p, lo, hi){
+  const {below, above} = neighbours(p);
+  const score = `Your score: <span class="band">${Math.round(p)}%</span> `
+              + `<span style="color:var(--ink-soft)">(somewhere between ${Math.round(lo)}% and ${Math.round(hi)}%)</span>`;
+  let line;
+  if(below && above)
+    line = `You are ahead of <strong>${below.name}</strong> (${Math.round(below.pct)}%) `
+         + `but behind <strong>${above.name}</strong> (${Math.round(above.pct)}%).<br>${score}`;
+  else if(!below && above)
+    line = `Every model on the board is still ahead of you — <strong>${above.name}</strong> `
+         + `(${Math.round(above.pct)}%) is the nearest one to catch.<br>${score}`;
+  else if(below && !above)
+    line = `You are ahead of every model on the board, including <strong>${below.name}</strong> `
+         + `(${Math.round(below.pct)}%).<br>${score}`;
+  else line = score;
+  return line + earningsLine();
+}
+
+// Tongue-in-cheek: the models charge real money per answer. Take the average
+// cost of the questions you've answered, and — using your time limit as the
+// clock — work out what you'd earn per hour billing at LLM rates.
+function earningsLine(){
+  if(!S.n || S.costSum <= 0) return '';
+  const avgCost = S.costSum / S.n;              // $ per question, at model prices
+  const perHour = avgCost * (3600 / S.secs);    // questions/hour * price
+  if(perHour < 0.005) return '';
+  const money = perHour >= 1 ? '$' + perHour.toFixed(2)
+                             : (perHour*100).toFixed(1) + '¢';
+
+  const r = Math.random();
+  if(r < 0.33)
+    return `<br><p><span style="color:var(--ink-soft)">As a human LLM, you could charge <strong>${money}/hour</strong> for your skills.</span></p>`;
+  else if(r < 0.66)
+    return `<br><p><span style="color:var(--ink-soft)">Skills like yours are worth <strong>${money}/hour</strong> in the LLM market!</span></p>`;
+  else
+    return `<br><p><span style="color:var(--ink-soft)">Based on LLM rates for these models and your response time, `
+            + `you could earn <strong>${money}/hour</strong> as a human API!</span></p>`;
+}
+
+function finish(extra){
+  stopTimer();
+  const p = pct(S.theta);
+  const lo = clamp(pct(S.theta-1.96*S.sd),0,100);
+  const hi = clamp(pct(S.theta+1.96*S.sd),0,100);
+  const beaten = DATA.models.filter(m=>!m.perfect_score && m.expected_pct < p);
+  let msg;
+  if(S.n===0){
+    msg = 'You did not answer anything, so there is nothing to measure.';
+  } else {
+    msg = `After ${S.n} question${S.n===1?'':'s'}: ` + neighbourLine(p, lo, hi)
+        + `<br><span style="color:var(--ink-soft)">That puts you ahead of `
+        + `<strong>${beaten.length}</strong> of the ${DATA.models.length} models tested.</span>`;
+  }
+  if(extra) msg = extra + '<br>' + msg;
+  $('done-msg').innerHTML = msg;
+  show('view-done');
+}
+
+/* ========================== settings =========================== */
+function openModal(id){ $(id).classList.add('on'); }
+function closeModal(id){ $(id).classList.remove('on'); }
+
+$('btn-set').onclick = ()=>openModal('scrim-set');
+$('set-close').onclick = ()=>closeModal('scrim-set');
+$('btn-about').onclick = ()=>openModal('scrim-about');
+$('about-close').onclick = ()=>closeModal('scrim-about');
+[['scrim-set'],['scrim-about']].forEach(([id])=>{
+  $(id).addEventListener('click', e => { if(e.target.id===id) closeModal(id); });
+});
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape'){ closeModal('scrim-set'); closeModal('scrim-about'); }
+});
+function fmtTime(s){
+  if(s < 60) return s+'s';
+  const m = Math.floor(s/60), r = s%60;
+  return r ? `${m}m ${String(r).padStart(2,'0')}s` : `${m}m`;
+}
+$('opt-secs').addEventListener('input', e => {
+  S.secs = +e.target.value; $('opt-secs-val').textContent = fmtTime(S.secs);
+});
+
+/* ============================ wiring =========================== */
+$('btn-start').onclick = start;
+$('btn-submit').onclick = ()=>submit(false);
+$('btn-next').onclick = nextItem;
+$('btn-stop').onclick = ()=>finish('');
+$('btn-again').onclick = ()=>{ buildRows(); start(); };
+document.addEventListener('keydown', e=>{
+  if($('view-q').hidden===false && S.cur && S.cur.format==='mc'){
+    const k = e.key.toUpperCase();
+    if(k>='A' && k<='H'){
+      const idx = k.charCodeAt(0)-65;
+      const inp = $('q-choices').children[idx]?.querySelector('input');
+      if(inp){ inp.checked=true; inp.dispatchEvent(new Event('change')); }
+    }
+  }
+  if(e.key==='Enter'){
+    if(!$('view-q').hidden && !$('btn-submit').disabled) submit(false);
+    else if(!$('view-fb').hidden) nextItem();
+  }
+});
+
+/* tooltips */
+const tip = $('tip');
+document.addEventListener('mouseover', e=>{
+  const t = e.target.closest('[data-tip]');
+  if(!t) return;
+  tip.textContent = t.dataset.tip; tip.classList.add('on');
+  const r = t.getBoundingClientRect();
+  tip.style.left = Math.min(r.left, window.innerWidth-260)+'px';
+  tip.style.top = (r.bottom+8)+'px';
+});
+document.addEventListener('mouseout', e=>{
+  if(e.target.closest('[data-tip]')) tip.classList.remove('on');
+});
+window.addEventListener('resize', layout);
+
+/* ============================= init ============================ */
+$('nmodels').textContent = DATA.models.length;
+$('foot-items').textContent = DATA.items.length;
+buildRows();
+</script>
+</body>
+</html>
