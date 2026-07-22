@@ -421,7 +421,7 @@ function buildRows(){
                   lo:m.expected_pct_lo, hi:m.expected_pct_hi, cls:''});
   });
   if(perfect.length){
-    entries.push({id:'__perfect__', name:'Perfect score', pct:100, lo:null, hi:null, cls:'perfect',
+    entries.push({id:'__perfect__', name:'Perfect score models', pct:100, lo:null, hi:null, cls:'perfect',
       tip:'Answered every question correctly, so the test cannot tell them apart:\n• '
           + perfect.map(m=>m.short||m.model).join('\n• ')});
   }
