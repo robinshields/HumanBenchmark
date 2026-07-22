@@ -310,9 +310,7 @@ input[type=range]{width:100%;accent-color:var(--signal)}
         <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg>
       </button>
     </div>
-    <p><strong>This is a toy.</strong> It is not a serious measure of human or machine intelligence, and it would not survive contact with a psychometrician. Treat the number as a conversation starter.</p>
-
-    <h3>Where the questions come from</h3>
+    <h3>Question Sources</h3>
     <ul>
       <li><strong>CommonsenseQA</strong> — everyday common sense that most people find easy.</li>
       <li><strong>GSM8K</strong> — grade-school arithmetic word problems.</li>
@@ -320,23 +318,15 @@ input[type=range]{width:100%;accent-color:var(--signal)}
       <li><strong>AGIEval (AQuA-RAT)</strong> — GMAT and GRE style quantitative word problems.</li>
       <li><strong>BIG-Bench Hard</strong> — logical deduction, object counting, date arithmetic, tracking things as they move, causal judgement, and truth-teller puzzles.</li>
     </ul>
-    <p>All were chosen to need reasoning rather than schooling or trivia, so nobody is punished for what they did or didn't study.</p>
 
-    <h3>Why so few questions</h3>
-    <p>The clever part is a <strong>Rasch model</strong>, and its payoff is efficiency: it can place you on the scale in a handful of questions where naive scoring would need dozens. Because it knows each question's difficulty in advance, every answer you give — right <em>or</em> wrong — rules out a whole range of possible scores at once. Miss a hard question and get an easy one, and it already has you pinned.</p>
-    <p>It works by putting question difficulty and contestant ability on one shared ruler. A question most models fail scores as hard; a contestant who answers hard questions scores as able. The chance of anyone getting any question right is just the gap between the two. That shared ruler is also why your eight answers can be compared fairly to a model that answered all hundred — everyone's score is <em>expected percent of the whole bank</em>, not raw marks.</p>
-    <p>And it's adaptive: after each answer the next question is chosen to sit right at your current level, where it reveals the most.</p>
-
+    <h3>Methodology</h3>
+    <p>The app uses a <strong>Rasch model</strong> to estimate a percentage score from a relatively small number of items. Information  </p>
+    
     <h3>Reading the range</h3>
     <p>The shaded bar is a 95% confidence range. It starts enormous and narrows with every answer. If two bars overlap heavily, the difference between them is not real.</p>
 
-    <h3>Honest caveats</h3>
-    <ul>
-      <li>Difficulty was calibrated on <em>machines</em>, not people. Humans find different things hard.</li>
-      <li>Several models answered every question correctly, so the test cannot rank them. They share a single <code>Perfect score</code> marker.</li>
-      <li>Guessing is only crudely accounted for.</li>
-      <li>25 respondents is a small calibration sample. The error bars are honest about this.</li>
-    </ul>
+    <h3>Disclaimers</h3>
+    <p>This is a proof of concept and illustration of how LLM benchmarking works in a human context, but it is not a serious test of reasoning or intelligence and has limited psychometric validty.</p>
   </div>
 </div>
 
